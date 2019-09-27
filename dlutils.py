@@ -1,6 +1,7 @@
 
 import os
 import shutil
+import cv2
 
 
 def generate_datasets_CNN(source, destination, test_factor, validation_factor):
@@ -51,3 +52,31 @@ def generate_dataset_GAN(source_domainA, source_domainB, target, test_factor, va
     os.mkdir(destination_domainB)
     generate_datasets_CNN(source_domainB, destination_domainB,
                           test_factor, validation_factor)
+
+
+def downscale_upscale_folders(path, down_path='/downscaled', resize_path='/resized', factor=4):
+
+    downscale_path = os.path.join(path, down_path)
+    resize_final_path = os.path.join(path, resize_path)
+    if not os.path.exists(downscale_path):
+        os.makedirs(downscale_path)
+    if not os.path.exists(resize_final_path):
+        os.makedirs(resize_final_path)
+    total_files = len(os.listdir(path))
+    i = 0
+    for filename in os.listdir(path):
+        i += 1
+        print('File {} {} / {}'.format(filename, i, total_files))
+        im_ori = cv2.imread(os.path.join(path, filename))
+        base_name = os.path.basename(filename)
+        base_name, ext = base_name.split('.')
+        final_name = base_name + '_downscaled.' + ext
+        final_path = os.path.join(downscale_path, final_name)
+        im_downscaled = cv2.resize(
+            im_ori, (im_ori.shape[0]//factor, im_ori.shape[1]//factor))
+        cv2.imwrite(final_path, im_downscaled)
+        im_upscalled = cv2.resize(
+            im_downscaled, (im_ori.shape[0], im_ori.shape[1]))
+        final_name = base_name + '_resized.' + ext
+        final_path = os.path.join(resize_final_path, final_name)
+        cv2.imwrite(final_path, im_upscalled)
